@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
+import uuid
 
 app = Flask(__name__)
 CORS(app)
@@ -47,14 +48,16 @@ def upload_video():
         return jsonify({'error': 'No selected file'}), 400
 
     if file and allowed_file(file.filename):
-        # Secure the filename and save the file
-        filename = secure_filename(file.filename)
+ # Secure the original filename
+        original_filename = secure_filename(file.filename)
+        # Generate a unique filename using UUID
+        unique_filename = f"{uuid.uuid4().hex}_{original_filename}"
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         file.save(filepath)
 
         # Save video info to database
-        video = Video(clip_name=clip_name, filename=filename)
+        video = Video(clip_name=clip_name, filename=unique_filename)
         db.session.add(video)
         db.session.commit()
 

@@ -3,7 +3,7 @@ import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faUpload  } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faTrash, faUpload  } from '@fortawesome/free-solid-svg-icons'
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -145,7 +145,7 @@ const ResponsiveVideoGrid = () => {
               onClick={() => handleRemoveFromGrid(item.gridId)}
               className="no-drag absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded z-50"
             >
-              Remove
+              <FontAwesomeIcon icon={faTrash} />
             </button>
           </div>
         ))}
@@ -174,7 +174,7 @@ const ResponsiveVideoGrid = () => {
             <h2 className="font-bold">Select Video</h2>
             <button
               onClick={() => setShowAddDropdown(false)}
-              className="text-gray-500 text-xl"
+              className="text-gray-500 text-4xl"
             >
               &times;
             </button>
