@@ -123,6 +123,7 @@ const ResponsiveVideoGrid = () => {
         cols={{ lg: 12 }}
         rowHeight={30}
         isDraggable={true}
+        draggableCancel=".no-drag"  // Prevent dragging from elements with this class
         isResizable={true}
         resizeHandles={["se", "sw", "ne", "nw"]}
         compactType="vertical"
@@ -142,7 +143,7 @@ const ResponsiveVideoGrid = () => {
             />
             <button
               onClick={() => handleRemoveFromGrid(item.gridId)}
-              className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded"
+              className="no-drag absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded z-50"
             >
               Remove
             </button>
