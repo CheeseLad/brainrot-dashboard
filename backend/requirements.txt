@@ -2,3 +2,5 @@ flask
 virtualenv
 flask_sqlalchemy
 flask_cors
+pymysql
+flasgger

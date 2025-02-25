@@ -26,3 +26,5 @@ dist-ssr
 # Backend
 backend/instance
 backend/uploads
+
+*.env

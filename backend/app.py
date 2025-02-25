@@ -4,13 +4,36 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
 import uuid
+from flasgger import Swagger
 
 app = Flask(__name__)
 CORS(app)
 
+app.config['SWAGGER'] = {
+    'title': 'Video API',
+    'uiversion': 3,
+    'specs_route': '/'
+}
 
-# Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///videos.db'
+swagger = Swagger(app)
+
+ENV = os.environ.get("FLASK_ENV", "development")
+
+if ENV == "production":
+    # Production settings: use MySQL.
+    # Set the following environment variables: DB_USER, DB_PASSWORD, DB_HOST, DB_NAME
+    DB_USER = os.environ.get("DB_USER", "user")
+    DB_PASSWORD = os.environ.get("DB_PASSWORD", "password")
+    DB_HOST = os.environ.get("DB_HOST", "localhost")
+    DB_NAME = os.environ.get("DB_NAME", "dbname")
+    
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+    app.config['DEBUG'] = False
+else:
+    # Development settings: use SQLite.
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///videos.db'
+    app.config['DEBUG'] = True
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB max upload size
@@ -35,9 +58,39 @@ class Video(db.Model):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Endpoint to upload a video
 @app.route('/upload', methods=['POST'])
 def upload_video():
+    """
+    Upload a video file
+    ---
+    consumes:
+      - multipart/form-data
+    parameters:
+      - in: formData
+        name: video
+        type: file
+        required: true
+        description: The video file to upload
+      - in: formData
+        name: clip_name
+        type: string
+        required: true
+        description: The clip name for the video
+    responses:
+      201:
+        description: Video uploaded successfully
+        schema:
+          id: Video
+          properties:
+            id:
+              type: integer
+            clip_name:
+              type: string
+            url:
+              type: string
+      400:
+        description: Error in file upload
+    """
     if 'video' not in request.files or 'clip_name' not in request.form:
         return jsonify({'error': 'Missing video file or clip name'}), 400
 
@@ -48,15 +101,12 @@ def upload_video():
         return jsonify({'error': 'No selected file'}), 400
 
     if file and allowed_file(file.filename):
- # Secure the original filename
         original_filename = secure_filename(file.filename)
-        # Generate a unique filename using UUID
         unique_filename = f"{uuid.uuid4().hex}_{original_filename}"
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         file.save(filepath)
 
-        # Save video info to database
         video = Video(clip_name=clip_name, filename=unique_filename)
         db.session.add(video)
         db.session.commit()
@@ -68,37 +118,50 @@ def upload_video():
     else:
         return jsonify({'error': 'Invalid file type'}), 400
 
-# Endpoint to list all videos
 @app.route('/videos', methods=['GET'])
 def list_videos():
+    """
+    Retrieve a list of uploaded videos
+    ---
+    responses:
+      200:
+        description: List of videos
+        schema:
+          type: array
+          items:
+            $ref: '#/definitions/Video'
+    definitions:
+      Video:
+        type: object
+        properties:
+          id:
+            type: integer
+          clip_name:
+            type: string
+          url:
+            type: string
+    """
     videos = Video.query.all()
     return jsonify([video.to_dict() for video in videos]), 200
 
-# Endpoint to delete a video by ID
-"""@app.route('/video/<int:video_id>', methods=['DELETE'])
-def delete_video(video_id):
-    video = Video.query.get(video_id)
-    if not video:
-        return jsonify({'error': 'Video not found'}), 404
-
-    # Remove the video file if it exists
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], video.filename)
-    if os.path.exists(filepath):
-        os.remove(filepath)
-
-    # Remove the video record from the database
-    db.session.delete(video)
-    db.session.commit()
-    return jsonify({'message': 'Video deleted successfully'}), 200"""
-
-# Route to serve uploaded video files
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
+    """
+    Serve an uploaded video file
+    ---
+    parameters:
+      - in: path
+        name: filename
+        type: string
+        required: true
+        description: The filename of the uploaded video
+    responses:
+      200:
+        description: The video file is served
+    """
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-# Run the app
 if __name__ == '__main__':
-    # Create the database and tables if they don't exist
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(debug=app.config['DEBUG'])
