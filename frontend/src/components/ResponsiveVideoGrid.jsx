@@ -59,7 +59,7 @@ const ResponsiveVideoGrid = () => {
         };
         const newGridVideos = [...gridVideos, newGridItem];
         setGridVideos(newGridVideos);
-        const cols = 4;
+        const cols = 8;
         const colWidth = 12 / cols;
         const newItemLayout = {
           i: newGridItem.gridId,
