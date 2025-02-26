@@ -2,31 +2,36 @@ import React, { useState, useEffect } from "react";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faTrash, faUpload  } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faPlus,
+  faTrash,
+  faUpload,
+  faVolumeUp,
+  faVolumeMute,
+} from "@fortawesome/free-solid-svg-icons";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const ResponsiveVideoGrid = () => {
-  // allVideos holds videos from the DB; gridVideos holds items currently shown in the grid.
-  // Each grid item has a unique gridId.
   const [allVideos, setAllVideos] = useState([]);
-  const [gridVideos, setGridVideos] = useState([]); // items: { gridId, video }
-  const [layout, setLayout] = useState([]); // layout items for current breakpoint
+  const [gridVideos, setGridVideos] = useState([]);
+  const [layout, setLayout] = useState([]);
   const [nextGridId, setNextGridId] = useState(0);
 
-  // UI state for the dropdown and upload modal
   const [showAddDropdown, setShowAddDropdown] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState("");
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadClipName, setUploadClipName] = useState("");
   const [uploadVideoFile, setUploadVideoFile] = useState(null);
 
+  const [allVideosMuted, setAllVideosMuted] = useState(true);
+  const [deleteMode, setDeleteMode] = useState(false);
+
   useEffect(() => {
     fetchVideos();
   }, []);
 
-  // Fetch videos from the backend; grid remains empty initially.
   const fetchVideos = async () => {
     try {
       const response = await fetch("http://localhost:5000/videos");
@@ -37,29 +42,29 @@ const ResponsiveVideoGrid = () => {
     }
   };
 
-  // Remove grid item (only removes it from the grid view, not the DB)
   const handleRemoveFromGrid = (gridId) => {
     setGridVideos((prev) => prev.filter((item) => item.gridId !== gridId));
     setLayout((prevLayout) => prevLayout.filter((item) => item.i !== gridId));
   };
 
-  // Add a video to the grid from the dropdown (duplicates allowed)
   const handleAddToGrid = () => {
     if (selectedVideoId) {
       const videoToAdd = allVideos.find(
         (video) => video.id.toString() === selectedVideoId
       );
       if (videoToAdd) {
-        const newGridItem = { gridId: nextGridId.toString(), video: videoToAdd };
+        const newGridItem = {
+          gridId: nextGridId.toString(),
+          video: videoToAdd,
+        };
         const newGridVideos = [...gridVideos, newGridItem];
         setGridVideos(newGridVideos);
-        // Create a default layout for this new grid item.
-        const cols = 4; // for lg breakpoint
+        const cols = 4;
         const colWidth = 12 / cols;
         const newItemLayout = {
           i: newGridItem.gridId,
           x: ((newGridVideos.length - 1) % cols) * colWidth,
-          y: Infinity, // pushes item to the bottom
+          y: Infinity,
           w: colWidth,
           h: 4,
         };
@@ -71,8 +76,6 @@ const ResponsiveVideoGrid = () => {
     setShowAddDropdown(false);
   };
 
-  // Handle uploading a video to the DB.
-  // Note: After upload, we update allVideos but do not modify gridVideos.
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!uploadVideoFile || !uploadClipName) {
@@ -91,9 +94,7 @@ const ResponsiveVideoGrid = () => {
       });
       const result = await response.json();
       if (response.ok) {
-        // Update the global video list but leave the current grid unchanged.
         setAllVideos([...allVideos, result.video]);
-        // Close the upload modal without altering the grid view.
         setUploadClipName("");
         setUploadVideoFile(null);
         setShowUploadModal(false);
@@ -105,17 +106,22 @@ const ResponsiveVideoGrid = () => {
     }
   };
 
-  // Update layout state on changes (drag, resize)
   const onLayoutChange = (currentLayout) => {
     setLayout(currentLayout);
   };
 
-  // All videos available for adding to grid (duplicates allowed)
   const availableVideosForDropdown = allVideos;
+
+  const handleUnmuteAll = () => {
+    setAllVideosMuted((allVideosMuted) => !allVideosMuted);
+  };
+
+  const handleDeleteMode = () => {
+    setDeleteMode((deleteMode) => !deleteMode);
+  };
 
   return (
     <div className="w-full min-h-screen p-4 bg-gray-100 relative">
-      {/*<h1 className="text-2xl font-bold mb-4">Video Grid</h1>*/}
       <ResponsiveGridLayout
         className="layout"
         layouts={{ lg: layout }}
@@ -123,7 +129,7 @@ const ResponsiveVideoGrid = () => {
         cols={{ lg: 12 }}
         rowHeight={30}
         isDraggable={true}
-        draggableCancel=".no-drag"  // Prevent dragging from elements with this class
+        draggableCancel=".no-drag"
         isResizable={true}
         resizeHandles={["se", "sw", "ne", "nw"]}
         compactType="vertical"
@@ -136,22 +142,23 @@ const ResponsiveVideoGrid = () => {
           >
             <video
               autoPlay
-              muted
+              muted={allVideosMuted}
               loop
               className="w-full h-full object-cover"
               src={item.video.url}
             />
-            <button
-              onClick={() => handleRemoveFromGrid(item.gridId)}
-              className="no-drag absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded z-50"
-            >
-              <FontAwesomeIcon icon={faTrash} />
-            </button>
+            {deleteMode && (
+              <button
+                onClick={() => handleRemoveFromGrid(item.gridId)}
+                className="no-drag absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded z-50"
+              >
+                <FontAwesomeIcon icon={faTrash} />
+              </button>
+            )}
           </div>
         ))}
       </ResponsiveGridLayout>
 
-      {/* Fixed icons in the bottom right */}
       <div className="fixed bottom-4 right-4 flex flex-col space-y-2">
         <button
           onClick={() => setShowAddDropdown(true)}
@@ -165,9 +172,26 @@ const ResponsiveVideoGrid = () => {
         >
           <FontAwesomeIcon icon={faUpload} className="text-3xl" />
         </button>
+
+        <button
+          onClick={handleUnmuteAll}
+          className="bg-yellow-500 text-white p-4 m-3 rounded-full shadow-lg"
+        >
+          {allVideosMuted ? (
+            <FontAwesomeIcon icon={faVolumeMute} className="text-3xl" />
+          ) : (
+            <FontAwesomeIcon icon={faVolumeUp} className="text-3xl" />
+          )}
+        </button>
+
+        <button
+          onClick={handleDeleteMode}
+          className="bg-red-500 text-white p-4 m-3 rounded-full shadow-lg"
+        >
+          <FontAwesomeIcon icon={faTrash} className="text-3xl" />
+        </button>
       </div>
 
-      {/* Dropdown modal for adding a video to the grid */}
       {showAddDropdown && (
         <div className="absolute bottom-20 right-4 bg-white shadow-lg rounded p-4">
           <div className="flex justify-between items-center mb-2">
@@ -200,11 +224,10 @@ const ResponsiveVideoGrid = () => {
         </div>
       )}
 
-      {/* Upload modal for uploading video to DB */}
       {showUploadModal && (
         <div className="absolute bottom-20 right-4 bg-white shadow-lg rounded p-4">
           <div className="flex justify-between items-center mb-2">
-          <h2 className="font-bold">Upload Video</h2>
+            <h2 className="font-bold">Upload Video</h2>
           </div>
           <div>
             <form onSubmit={handleUpload}>
