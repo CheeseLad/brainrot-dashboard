@@ -13,6 +13,7 @@ COPY . .
 ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 ENV PATH="/venv/bin:$PATH"
+ENV FLASK_ENV=development
 
 EXPOSE 5000
 
