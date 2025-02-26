@@ -150,7 +150,7 @@ const ResponsiveVideoGrid = () => {
             {deleteMode && (
               <button
                 onClick={() => handleRemoveFromGrid(item.gridId)}
-                className="no-drag absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded z-50"
+                className="no-drag absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded z-50 cursor-pointer hover:bg-red-600"
               >
                 <FontAwesomeIcon icon={faTrash} />
               </button>
@@ -162,20 +162,20 @@ const ResponsiveVideoGrid = () => {
       <div className="fixed bottom-4 right-4 flex flex-col space-y-2">
         <button
           onClick={() => setShowAddDropdown(true)}
-          className="bg-blue-500 text-white p-4 m-3 rounded-full shadow-lg"
+          className="bg-blue-500 text-white p-4 m-3 rounded-full shadow-lg cursor-pointer hover:bg-blue-600"
         >
           <FontAwesomeIcon icon={faPlus} className="text-3xl" />
         </button>
         <button
           onClick={() => setShowUploadModal(true)}
-          className="bg-green-500 text-white p-4 m-3 rounded-full shadow-lg"
+          className="bg-green-500 text-white p-4 m-3 rounded-full shadow-lg cursor-pointer hover:bg-green-600"
         >
           <FontAwesomeIcon icon={faUpload} className="text-3xl" />
         </button>
 
         <button
           onClick={handleUnmuteAll}
-          className="bg-yellow-500 text-white p-4 m-3 rounded-full shadow-lg"
+          className="bg-yellow-500 text-white p-4 m-3 rounded-full shadow-lg cursor-pointer hover:bg-yellow-600"
         >
           {allVideosMuted ? (
             <FontAwesomeIcon icon={faVolumeMute} className="text-3xl" />
@@ -186,7 +186,7 @@ const ResponsiveVideoGrid = () => {
 
         <button
           onClick={handleDeleteMode}
-          className="bg-red-500 text-white p-4 m-3 rounded-full shadow-lg"
+          className="bg-red-500 text-white p-4 m-3 rounded-full shadow-lg cursor-pointer hover:bg-red-600"
         >
           <FontAwesomeIcon icon={faTrash} className="text-3xl" />
         </button>
