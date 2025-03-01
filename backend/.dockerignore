@@ -1,0 +1,7 @@
+env
+instance
+uploads
+.dockerignore
+*.env
+Dockerfile
+unused.py

@@ -34,7 +34,7 @@ const ResponsiveVideoGrid = () => {
 
   const fetchVideos = async () => {
     try {
-      const response = await fetch("http://localhost:5000/videos");
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/videos`);
       const data = await response.json();
       setAllVideos(data);
     } catch (error) {
@@ -89,7 +89,7 @@ const ResponsiveVideoGrid = () => {
     formData.append("clip_name", uploadClipName);
 
     try {
-      const response = await fetch("http://localhost:5000/upload", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
         method: "POST",
         body: formData,
       });

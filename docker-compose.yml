@@ -2,7 +2,9 @@ services:
   brainrot-dashboard-backend:
     container_name: brainrot-dashboard-backend
     hostname: brainrot-dashboard-backend
-    image: ghcr.io/cheeselad/brainrot-dashboard-backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
       - "5000:5000"
@@ -13,11 +15,17 @@ services:
       - DB_HOST=$DB_HOST
       - DB_NAME=$DB_NAME
       - PORT=$PORT
+    volumes:
+      - ./backend/uploads:/app/uploads
+    networks:
+      - brainrot-dashboard-network
 
   brainrot-dashboard-frontend:
     container_name: brainrot-dashboard-frontend
     hostname: brainrot-dashboard-frontend
-    image: ghcr.io/cheeselad/brainrot-dashboard-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
       - "5173:5173"
