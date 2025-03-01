@@ -64,6 +64,7 @@ const ResponsiveVideoGrid = () => {
         const newItemLayout = {
           i: newGridItem.gridId,
           x: ((newGridVideos.length - 1) % cols) * colWidth,
+          //x: Infinity,
           y: Infinity,
           w: colWidth,
           h: 4,
@@ -120,6 +121,14 @@ const ResponsiveVideoGrid = () => {
     setDeleteMode((deleteMode) => !deleteMode);
   };
 
+  const handleUploadModal = () => {
+    setShowUploadModal((showUploadModal) => !showUploadModal);
+  }
+
+  const handleAddModal = () => {
+    setShowAddDropdown((showAddDropdown) => !showAddDropdown);
+  }
+
   return (
     <div className="w-full min-h-screen p-4 bg-gray-100 relative">
       <ResponsiveGridLayout
@@ -150,9 +159,9 @@ const ResponsiveVideoGrid = () => {
             {deleteMode && (
               <button
                 onClick={() => handleRemoveFromGrid(item.gridId)}
-                className="no-drag absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded z-50 cursor-pointer hover:bg-red-600"
+                className="no-drag absolute top-2 right-2 bg-red-500 text-white px-4 py-2 rounded z-50 cursor-pointer hover:bg-red-600"
               >
-                <FontAwesomeIcon icon={faTrash} />
+                <FontAwesomeIcon icon={faTrash} className="text-3xl" />
               </button>
             )}
           </div>
@@ -161,21 +170,22 @@ const ResponsiveVideoGrid = () => {
 
       <div className="fixed bottom-4 right-4 flex flex-col space-y-2">
         <button
-          onClick={() => setShowAddDropdown(true)}
-          className="bg-blue-500 text-white p-4 m-3 rounded-full shadow-lg cursor-pointer hover:bg-blue-600"
+          onClick={() => handleAddModal()}
+          className="bg-blue-500 text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg cursor-pointer hover:bg-blue-600"
         >
           <FontAwesomeIcon icon={faPlus} className="text-3xl" />
         </button>
+
         <button
-          onClick={() => setShowUploadModal(true)}
-          className="bg-green-500 text-white p-4 m-3 rounded-full shadow-lg cursor-pointer hover:bg-green-600"
+          onClick={() => handleUploadModal()}
+          className="bg-green-500 text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg cursor-pointer hover:bg-green-600"
         >
           <FontAwesomeIcon icon={faUpload} className="text-3xl" />
         </button>
 
         <button
           onClick={handleUnmuteAll}
-          className="bg-yellow-500 text-white p-4 m-3 rounded-full shadow-lg cursor-pointer hover:bg-yellow-600"
+          className="bg-yellow-500 text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg cursor-pointer hover:bg-yellow-600"
         >
           {allVideosMuted ? (
             <FontAwesomeIcon icon={faVolumeMute} className="text-3xl" />
@@ -186,81 +196,91 @@ const ResponsiveVideoGrid = () => {
 
         <button
           onClick={handleDeleteMode}
-          className="bg-red-500 text-white p-4 m-3 rounded-full shadow-lg cursor-pointer hover:bg-red-600"
+          className="bg-red-500 text-white w-16 h-16 flex items-center justify-center rounded-full shadow-lg cursor-pointer hover:bg-red-600"
         >
           <FontAwesomeIcon icon={faTrash} className="text-3xl" />
         </button>
       </div>
 
       {showAddDropdown && (
-        <div className="absolute bottom-20 right-4 bg-white shadow-lg rounded p-4">
+        <div className="fixed bottom-70 right-30 bg-white shadow-lg rounded-lg p-4 w-64 border border-gray-300">
           <div className="flex justify-between items-center mb-2">
-            <h2 className="font-bold">Select Video</h2>
-            <button
-              onClick={() => setShowAddDropdown(false)}
-              className="text-gray-500 text-4xl"
-            >
-              &times;
-            </button>
+            <h2 className="font-bold text-gray-900">Add Video</h2>
           </div>
+          {availableVideosForDropdown.length === 0 && (
+            <p className="text-gray-900 text-sm mb-4">
+              No videos available. Please upload a video first.
+            </p>
+            )}
+          {availableVideosForDropdown.length > 0 && (
+            
           <select
             value={selectedVideoId}
             onChange={(e) => setSelectedVideoId(e.target.value)}
-            className="border p-2 mb-2 w-full"
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm mb-4 rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
           >
-            <option value="">--Select a video--</option>
             {availableVideosForDropdown.map((video) => (
               <option key={video.id} value={video.id}>
                 {video.clip_name}
               </option>
             ))}
           </select>
-          <button
-            onClick={handleAddToGrid}
-            className="bg-blue-500 text-white px-4 py-2 rounded w-full"
-          >
-            Add
-          </button>
+          )}
+          <div className="flex justify-end space-x-2">
+            <button
+              type="button"
+              onClick={() => setShowAddDropdown(false)}
+              className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 cursor-pointer"
+            >
+              Cancel
+            </button>
+            {availableVideosForDropdown.length > 0 && (
+            <button
+              onClick={handleAddToGrid}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 cursor-pointer"
+            >
+              Add
+            </button>
+            )}
+          </div>
         </div>
       )}
 
       {showUploadModal && (
-        <div className="absolute bottom-20 right-4 bg-white shadow-lg rounded p-4">
+        <div className="fixed bottom-10 right-30 bg-white shadow-lg rounded-lg p-4 w-64 border border-gray-300">
           <div className="flex justify-between items-center mb-2">
-            <h2 className="font-bold">Upload Video</h2>
+            <h2 className="font-bold text-gray-900">Upload Video</h2>
           </div>
-          <div>
-            <form onSubmit={handleUpload}>
-              <input
-                type="text"
-                placeholder="Clip Name"
-                value={uploadClipName}
-                onChange={(e) => setUploadClipName(e.target.value)}
-                className="border p-2 w-full mb-4"
-              />
-              <input
-                type="file"
-                accept="video/*"
-                onChange={(e) => setUploadVideoFile(e.target.files[0])}
-                className="border p-2 w-full mb-4"
-              />
-              <div className="flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setShowUploadModal(false)}
-                  className="bg-gray-500 text-white px-4 py-2 rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-green-500 text-white px-4 py-2 rounded"
-                >
-                  Upload
-                </button>
-              </div>
-            </form>
-          </div>
+          <form onSubmit={handleUpload}>
+            <input
+              type="text"
+              placeholder="Video Name"
+              value={uploadClipName}
+              onChange={(e) => setUploadClipName(e.target.value)}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 mb-4"
+            />
+            <input
+              type="file"
+              accept="video/*"
+              onChange={(e) => setUploadVideoFile(e.target.files[0])}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 mb-4 cursor-pointer"
+            />
+            <div className="flex justify-end space-x-2">
+              <button
+                type="button"
+                onClick={() => setShowUploadModal(false)}
+                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 cursor-pointer"
+              >
+                Upload
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>
