@@ -5,6 +5,8 @@ from werkzeug.utils import secure_filename
 from flask_cors import CORS
 import uuid
 from flasgger import Swagger
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import OperationalError
 
 app = Flask(__name__)
 CORS(app)
@@ -29,6 +31,24 @@ if ENV == "production":
     
     app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
     app.config['DEBUG'] = False
+    
+    engine = create_engine(f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}")
+    
+    try:
+        # Attempt to connect to MySQL and check if the database exists
+        with engine.connect() as conn:
+            # Query to check if the database exists
+            result = conn.execute(text(f"SHOW DATABASES LIKE '{DB_NAME}'")).fetchone()
+
+            if not result:
+                # If the database does not exist, create it
+                print(f"Database {DB_NAME} does not exist. Creating it now...")
+                conn.execute(text(f"CREATE DATABASE {DB_NAME}"))
+                print(f"Database {DB_NAME} created successfully.")
+
+    except OperationalError as e:
+        print(f"Error connecting to the MySQL server: {e}")
+        
 else:
     # Development settings: use SQLite.
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///videos.db'
@@ -164,4 +184,4 @@ def uploaded_file(filename):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=app.config['DEBUG'])
+    app.run(debug=app.config['DEBUG'], port=os.environ.get("PORT", 5000))
