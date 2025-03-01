@@ -45,6 +45,8 @@ if ENV == "production":
                 print(f"Database {DB_NAME} does not exist. Creating it now...")
                 conn.execute(text(f"CREATE DATABASE {DB_NAME}"))
                 print(f"Database {DB_NAME} created successfully.")
+                
+            print(f"Connected to MySQL server at {DB_HOST}")
 
     except OperationalError as e:
         print(f"Error connecting to the MySQL server: {e}")

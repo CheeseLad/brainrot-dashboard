@@ -1,0 +1,33 @@
+services:
+  brainrot-dashboard-backend:
+    container_name: brainrot-dashboard-backend
+    hostname: brainrot-dashboard-backend
+    image: ghcr.io/cheeselad/brainrot-dashboard-backend:latest
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=$FLASK_ENV
+      - DB_USER=$DB_USER
+      - DB_PASSWORD=$DB_PASSWORD
+      - DB_HOST=$DB_HOST
+      - DB_NAME=$DB_NAME
+      - PORT=$PORT
+
+  brainrot-dashboard-frontend:
+    container_name: brainrot-dashboard-frontend
+    hostname: brainrot-dashboard-frontend
+    image: ghcr.io/cheeselad/brainrot-dashboard-frontend:latest
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=$VITE_API_URL
+    depends_on:
+      - brainrot-dashboard-backend
+    networks:
+      - brainrot-dashboard-network
+
+networks:
+  brainrot-dashboard-network:
+    driver: bridge
